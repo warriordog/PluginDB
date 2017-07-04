@@ -11,13 +11,13 @@ public class Column {
 
     private final boolean nullable;
     private final boolean primaryKey;
-    private final Column foreignKey;
+    private final String foreignKey;
 
     public Column(Table table, String name, FType type) {
         this(table, name, type, null, true, false, null);
     }
 
-    public Column(Table table, String name, FType type, String typeMod, boolean nullable, boolean primaryKey, Column foreignKey) {
+    public Column(Table table, String name, FType type, String typeMod, boolean nullable, boolean primaryKey, String foreignKey) {
         this.table = table;
         this.name = name;
         this.type = type;
@@ -51,7 +51,7 @@ public class Column {
         return primaryKey;
     }
 
-    public Column getForeignKey() {
+    public String getForeignKey() {
         return foreignKey;
     }
 }

@@ -134,10 +134,7 @@ public class HSQLDBDatabase implements Database {
                     query.append(", PRIMARY KEY (");
                     query.append(c.getName());
                     query.append(") REFERENCES ");
-                    query.append(c.getForeignKey().getTable().getName());
-                    query.append('(');
-                    query.append(c.getForeignKey().getName());
-                    query.append(')');
+                    query.append(c.getForeignKey());
                 }
             }
 

@@ -15,6 +15,9 @@ public class DBSettings {
     // relative path to database
     private String databasePath = "database/db";
 
+    // if true, database will be automatically built from "db.cfg" in the jar
+    private boolean autoBuildDB = false;
+
     public boolean isSemiSyncEnabled() {
         return semiSyncEnabled;
     }
@@ -40,6 +43,14 @@ public class DBSettings {
 
     public void setDatabasePath(String databasePath) {
         this.databasePath = databasePath;
+    }
+
+    public boolean autoBuildDB() {
+        return autoBuildDB;
+    }
+
+    public void setAutoBuildDB(boolean autoBuildDB) {
+        this.autoBuildDB = autoBuildDB;
     }
 
     private void checkLocked() {

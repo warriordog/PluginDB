@@ -2,10 +2,16 @@ package net.acomputerdog.plugindb;
 
 import net.acomputerdog.plugindb.db.Database;
 import net.acomputerdog.plugindb.ex.PDBException;
+import net.acomputerdog.plugindb.schema.Schema;
 import net.acomputerdog.plugindb.util.CallbackManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class PluginDB {
+    private static final String DB_CONFIG_NAME = "db.cfg";
+
     private final JavaPlugin plugin;
 
     /*
@@ -16,8 +22,16 @@ public class PluginDB {
     private DBSettings settings;
     private int tickEventID = -1;
 
+    /*
+        Linked objects
+     */
     private Database db;
     private CallbackManager callbackManager;
+
+    /*
+        Database schema
+     */
+    private Schema schema;
 
     public PluginDB(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -32,9 +46,17 @@ public class PluginDB {
         if (isConnected) {
             throw new IllegalStateException("load() called after connect()");
         }
-        this.settings = settings;
 
+        this.settings = settings;
         this.callbackManager = new CallbackManager();
+
+        if (settings.autoBuildDB()) {
+            try (InputStream in = getClass().getResourceAsStream(DB_CONFIG_NAME)) {
+                schema = Schema.createFromFile(in);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Autoloading database is enabled, but database config is missing.");
+            }
+        }
 
         // if semi-sync is enabled, then we need a tick handler
         if (settings.isSemiSyncEnabled()) {
@@ -112,5 +134,13 @@ public class PluginDB {
 
     public CallbackManager getCallbackManager() {
         return callbackManager;
+    }
+
+    public Schema getSchema() {
+        return schema;
+    }
+
+    public void setSchema(Schema schema) {
+        this.schema = schema;
     }
 }
