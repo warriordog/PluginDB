@@ -1,4 +1,4 @@
-PluginDB
+PluginDB: 
 An SQL library for Bukkit plugins
 ---
 PluginDB is an SQL helper library for bukkit plugins.  It can automatically access or create and initialize a database
