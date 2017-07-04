@@ -1,4 +1,4 @@
-package net.acomputerdog.plugindb.schema;
+package net.acomputerdog.plugindb.schema.field;
 
 public enum FType {
     INT('I'),
