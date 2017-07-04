@@ -1,14 +1,12 @@
 package net.acomputerdog.plugindb.db.hsqldb;
 
 import net.acomputerdog.plugindb.PluginDB;
+import net.acomputerdog.plugindb.callback.Callback;
+import net.acomputerdog.plugindb.callback.QueryCallback;
+import net.acomputerdog.plugindb.callback.UpdateCallback;
 import net.acomputerdog.plugindb.db.Database;
 import net.acomputerdog.plugindb.ex.DatabaseException;
 import net.acomputerdog.plugindb.ex.QueryFormatException;
-import net.acomputerdog.plugindb.ex.QuerySQLException;
-import net.acomputerdog.plugindb.query.GetQuery;
-import net.acomputerdog.plugindb.query.Query;
-import net.acomputerdog.plugindb.query.RawQuery;
-import net.acomputerdog.plugindb.query.SetQuery;
 import net.acomputerdog.plugindb.schema.Column;
 import net.acomputerdog.plugindb.schema.Table;
 import net.acomputerdog.plugindb.schema.field.FType;
@@ -21,15 +19,11 @@ import java.sql.SQLException;
 public class HSQLDBDatabase implements Database {
     private final PluginDB pdb;
 
-    // shared instance to avoid creating extra objects
-    private final HSQLDBResult sharedResult;
-
     // Database connection
     private Connection conn;
 
     public HSQLDBDatabase(PluginDB pdb) {
         this.pdb = pdb;
-        this.sharedResult = new HSQLDBResult();
     }
 
     @Override
@@ -122,125 +116,31 @@ public class HSQLDBDatabase implements Database {
     }
 
     @Override
-    public void handleRawQuery(RawQuery query) {
+    public void execute(PreparedStatement statement, Callback callback) {
         try {
-            if (query.getStoredQuery() == null) {
-                query.setStoredQuery(conn.prepareStatement(query.getQuery()));
-            }
-            handleQuery(query);
+            statement.execute();
+            callback.onComplete();
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in query SQL", e);
+            throw new QueryFormatException("Error in SQL query", e);
         }
     }
 
     @Override
-    public void handleGetQuery(GetQuery query) {
+    public void executeQuery(PreparedStatement statement, QueryCallback callback) {
         try {
-            if (query.getStoredQuery() == null) {
-                query.setStoredQuery(conn.prepareStatement(buildGetQuery(query)));
-            }
-            handleQuery(query);
+            callback.onQueryComplete(statement.executeQuery());
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in query SQL", e);
+            throw new QueryFormatException("Error in SQL query", e);
         }
     }
 
     @Override
-    public void handleSetQuery(SetQuery query) {
+    public void executeUpdate(PreparedStatement statement, UpdateCallback callback) {
         try {
-            if (query.getStoredQuery() == null) {
-                query.setStoredQuery(conn.prepareStatement(buildSetQuery(query)));
-            }
-
-            //TODO set parameters
-
-            handleQuery(query);
+            callback.onUpdateComplete(statement.executeUpdate());
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in query SQL", e);
+            throw new QueryFormatException("Error in SQL query", e);
         }
-    }
-
-    private void handleQuery(Query query) {
-        try {
-            PreparedStatement statement = (PreparedStatement)query.getStoredQuery();
-            if (query.isGet()) {
-                sharedResult.setQuery(statement.executeQuery());
-            } else {
-                sharedResult.setUpdate(statement.executeUpdate());
-            }
-        } catch (ClassCastException e) {
-            throw new QueryFormatException("query has wrong format of prepared statement", e);
-        } catch (SQLException e) {
-            throw new QuerySQLException("Exception occurred while executing SQL", e);
-        }
-    }
-
-    private String buildGetQuery(GetQuery query) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT ");
-
-        // append columns to get
-        if (query.getWantedColumns().length == 0) {
-            builder.append('*');
-        } else {
-            Column[] wantedColumns = query.getWantedColumns();
-            for (int i = 0; i < wantedColumns.length; i++) {
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                Column c = wantedColumns[i];
-                builder.append(c.getName());
-            }
-        }
-
-        builder.append(" FROM ");
-        builder.append(query.getTable().getName());
-
-        // conditions
-        if (query.getConditions() != null) {
-            builder.append(" WHERE ");
-            builder.append(query.getConditions());
-        }
-
-        return builder.toString();
-    }
-
-
-    private String buildSetQuery(SetQuery query) {
-        /*
-            MERGE INTO t
-            USING
-                (VALUES(1, 'a'))
-                AS v(a, b)
-            ON t.a = v.a
-            WHEN MATCHED THEN
-                UPDATE SET t.b = v.b
-            WHEN NOT MATCHED THEN
-                INSERT VALUES v.a, v.b
-         */
-        StringBuilder builder = new StringBuilder();
-        builder.append("MERGE INTO ");
-        builder.append(query.getTable().getName());
-        builder.append(" USING (VALUES(");
-
-        // append values
-        for (int i = 0; i < query.getNumFields(); i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            builder.append("?");
-        }
-
-        // name values
-        builder.append(") AS v(");
-        for (int i = 0; i < query.getNumFields(); i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            builder.append((char)('a' + i));
-        }
-
-        builder.append(" ON ");
     }
 
     private String getSQLType(FType type, String typeMod) {

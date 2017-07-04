@@ -12,6 +12,9 @@ public class DBSettings {
     // Database provider to use
     private DBProvider databaseProvider = new HSQLDBProvider();
 
+    // relative path to database
+    private String databasePath = "database/db";
+
     public boolean isSemiSyncEnabled() {
         return semiSyncEnabled;
     }
@@ -28,6 +31,15 @@ public class DBSettings {
     public void setDatabaseProvider(DBProvider databaseProvider) {
         checkLocked();
         this.databaseProvider = databaseProvider;
+    }
+
+    public String getDatabasePath() {
+        checkLocked();
+        return databasePath;
+    }
+
+    public void setDatabasePath(String databasePath) {
+        this.databasePath = databasePath;
     }
 
     private void checkLocked() {
