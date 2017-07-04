@@ -2,6 +2,7 @@ package net.acomputerdog.plugindb;
 
 import net.acomputerdog.plugindb.db.Database;
 import net.acomputerdog.plugindb.ex.PDBException;
+import net.acomputerdog.plugindb.util.CallbackManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PluginDB {
@@ -16,6 +17,7 @@ public class PluginDB {
     private int tickEventID = -1;
 
     private Database db;
+    private CallbackManager callbackManager;
 
     public PluginDB(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -31,6 +33,8 @@ public class PluginDB {
             throw new IllegalStateException("load() called after connect()");
         }
         this.settings = settings;
+
+        this.callbackManager = new CallbackManager();
 
         // if semi-sync is enabled, then we need a tick handler
         if (settings.isSemiSyncEnabled()) {
@@ -87,10 +91,26 @@ public class PluginDB {
     }
 
     private void onTick() {
+        callbackManager.onTick();
+    }
 
+    public void shutdownOnError(String message, Throwable t) {
+        plugin.getLogger().severe(message);
+        if (t != null) {
+            t.printStackTrace();
+        }
+        disconnect();
+    }
+
+    public Database getDatabase() {
+        return db;
     }
 
     public DBSettings getSettings() {
         return settings;
+    }
+
+    public CallbackManager getCallbackManager() {
+        return callbackManager;
     }
 }

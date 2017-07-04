@@ -1,11 +1,10 @@
 package net.acomputerdog.plugindb.db;
 
-import net.acomputerdog.plugindb.callback.Callback;
-import net.acomputerdog.plugindb.callback.QueryCallback;
-import net.acomputerdog.plugindb.callback.UpdateCallback;
+import net.acomputerdog.plugindb.query.Callback;
+import net.acomputerdog.plugindb.query.Query;
+import net.acomputerdog.plugindb.query.QueryCallback;
+import net.acomputerdog.plugindb.query.UpdateCallback;
 import net.acomputerdog.plugindb.schema.Table;
-
-import java.sql.PreparedStatement;
 
 public interface Database {
     void connect();
@@ -14,7 +13,7 @@ public interface Database {
 
     void createTable(Table table);
 
-    void execute(PreparedStatement statement, Callback callback);
-    void executeQuery(PreparedStatement statement, QueryCallback callback);
-    void executeUpdate(PreparedStatement statement, UpdateCallback callback);
+    void execute(Query query, Callback callback);
+    void executeQuery(Query query, QueryCallback callback);
+    void executeUpdate(Query query, UpdateCallback callback);
 }
