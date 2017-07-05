@@ -31,4 +31,35 @@ public class Table {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("Table{name=");
+        if (name != null) {
+            builder.append(name);
+        } else {
+            builder.append("null");
+        }
+
+        builder.append(", columns=");
+        if (columns != null) {
+            for (int i = 0; i < columns.length; i++) {
+                if (i > 0) {
+                    builder.append(", ");
+                }
+                Column c = columns[i];
+                if (c != null) {
+                    builder.append(c.toString());
+                } else {
+                    builder.append("null");
+                }
+            }
+        } else {
+            builder.append("null");
+        }
+        builder.append('}');
+        return builder.toString();
+    }
 }

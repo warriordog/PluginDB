@@ -12,12 +12,13 @@ public class Column {
     private final boolean nullable;
     private final boolean primaryKey;
     private final String foreignKey;
+    private final boolean unique;
 
     public Column(Table table, String name, FType type) {
-        this(table, name, type, null, true, false, null);
+        this(table, name, type, null, true, false, null, false);
     }
 
-    public Column(Table table, String name, FType type, String typeMod, boolean nullable, boolean primaryKey, String foreignKey) {
+    public Column(Table table, String name, FType type, String typeMod, boolean nullable, boolean primaryKey, String foreignKey, boolean unique) {
         this.table = table;
         this.name = name;
         this.type = type;
@@ -25,6 +26,7 @@ public class Column {
         this.nullable = nullable;
         this.primaryKey = primaryKey;
         this.foreignKey = foreignKey;
+        this.unique = unique;
     }
 
     public Table getTable() {
@@ -53,5 +55,23 @@ public class Column {
 
     public String getForeignKey() {
         return foreignKey;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    @Override
+    public String toString() {
+        return "Column{" +
+                "table=" + (table == null ?"null" : table.getName()) +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", typeMod='" + typeMod + '\'' +
+                ", nullable=" + nullable +
+                ", primaryKey=" + primaryKey +
+                ", foreignKey='" + foreignKey + '\'' +
+                ", unique='" + unique + '\'' +
+                '}';
     }
 }

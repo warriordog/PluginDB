@@ -37,11 +37,11 @@ public class DBSettings {
     }
 
     public String getDatabasePath() {
-        checkLocked();
         return databasePath;
     }
 
     public void setDatabasePath(String databasePath) {
+        checkLocked();
         this.databasePath = databasePath;
     }
 
@@ -50,6 +50,7 @@ public class DBSettings {
     }
 
     public void setAutoBuildDB(boolean autoBuildDB) {
+        checkLocked();
         this.autoBuildDB = autoBuildDB;
     }
 

@@ -5,16 +5,16 @@ import net.acomputerdog.plugindb.PluginDB;
 import net.acomputerdog.plugindb.db.Database;
 import net.acomputerdog.plugindb.ex.DatabaseException;
 import net.acomputerdog.plugindb.ex.QueryFormatException;
+import net.acomputerdog.plugindb.ex.QuerySQLException;
 import net.acomputerdog.plugindb.query.*;
 import net.acomputerdog.plugindb.schema.Column;
 import net.acomputerdog.plugindb.schema.Table;
 import net.acomputerdog.plugindb.schema.field.FType;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
@@ -112,16 +112,19 @@ public class HSQLDBDatabase implements Database {
                 query.append(c.getName());
                 query.append(' ');
                 query.append(getSQLType(c.getType(), c.getTypeMod()));
+                /*
                 if (c.getTypeMod() != null) {
                     query.append('(');
                     query.append(c.getTypeMod());
                     query.append(')');
                 }
+                */
                 if (!c.isNullable()) {
                     query.append(" NOT NULL");
                 }
             }
 
+            List<Column> uniques = new ArrayList<>();
             // constraints
             for (int i = 0; i < table.getNumColumns(); i++) {
                 Column c = table.getColumnIdx(i);
@@ -131,11 +134,29 @@ public class HSQLDBDatabase implements Database {
                     query.append(')');
                 }
                 if (c.getForeignKey() != null) {
-                    query.append(", PRIMARY KEY (");
+                    query.append(", FOREIGN KEY (");
                     query.append(c.getName());
                     query.append(") REFERENCES ");
                     query.append(c.getForeignKey());
                 }
+                if (c.isUnique()) {
+                    uniques.add(c);
+                }
+            }
+
+            // UNIQUE constraint
+            if (uniques.size() > 0) {
+                query.append(", CONSTRAINT UNIQ_");
+                query.append(table.getName());
+                query.append(" UNIQUE (");
+                for (int i = 0; i < uniques.size(); i++) {
+                    if (i > 0) {
+                        query.append(", ");
+                    }
+                    Column c = uniques.get(i);
+                    query.append(c.getName());
+                }
+                query.append(")");
             }
 
             // ending paren
@@ -143,10 +164,10 @@ public class HSQLDBDatabase implements Database {
 
             int res = conn.createStatement().executeUpdate(query.toString());
             if (res == -1) {
-                throw new QueryFormatException("Error creating table.");
+                throw new QuerySQLException("Error creating table.");
             }
         } catch (SQLException e) {
-            throw new QueryFormatException("SQL error while creating table", e);
+            throw new QuerySQLException("SQL error while creating table", e);
         }
     }
 
@@ -154,7 +175,7 @@ public class HSQLDBDatabase implements Database {
         try {
             query.getStatement().execute();
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in SQL query", e);
+            throw new QuerySQLException("Error in SQL query", e);
         }
     }
 
@@ -162,7 +183,7 @@ public class HSQLDBDatabase implements Database {
         try {
             return query.getStatement().executeQuery();
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in SQL query", e);
+            throw new QuerySQLException("Error in SQL query", e);
         }
     }
 
@@ -170,7 +191,7 @@ public class HSQLDBDatabase implements Database {
         try {
             return query.getStatement().executeUpdate();
         } catch (SQLException e) {
-            throw new QueryFormatException("Error in SQL query", e);
+            throw new QuerySQLException("Error in SQL query", e);
         }
     }
 
@@ -257,9 +278,18 @@ public class HSQLDBDatabase implements Database {
         }
     }
 
+    @Override
+    public PreparedStatement prepareStatement(String query) {
+        try {
+            return conn.prepareStatement(query);
+        } catch (SQLException e) {
+            throw new QuerySQLException("Unable to prepare statement", e);
+        }
+    }
+
     private String getSQLType(FType type, String typeMod) {
         switch (type) {
-            case INT:
+            case INTEGER:
                 return "INTEGER";
             case IDENTITY:
                 return "INTEGER IDENTITY";

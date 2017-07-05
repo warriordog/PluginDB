@@ -1,7 +1,7 @@
 package net.acomputerdog.plugindb.schema.field;
 
 public enum FType {
-    INT('I'),
+    INTEGER('I'),
     FLOAT('F'),
     STRING('S'),
     VARSTRING('V'),

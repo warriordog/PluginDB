@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class PluginDB {
-    private static final String DB_CONFIG_NAME = "db.cfg";
+    private static final String DB_CONFIG_NAME = "/db.cfg";
 
     private final JavaPlugin plugin;
 
@@ -88,6 +88,11 @@ public class PluginDB {
 
                     // connect to database
                     db.connect();
+
+                    // create tables
+                    if (settings.autoBuildDB()) {
+                        db.createSchema(schema);
+                    }
 
                     isConnected = true;
                 } catch (Exception e) {
