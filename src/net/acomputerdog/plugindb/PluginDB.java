@@ -51,7 +51,7 @@ public class PluginDB {
         this.callbackManager = new CallbackManager();
 
         if (settings.autoBuildDB()) {
-            try (InputStream in = getClass().getResourceAsStream(DB_CONFIG_NAME)) {
+            try (InputStream in = plugin.getClass().getResourceAsStream(DB_CONFIG_NAME)) {
                 schema = Schema.createFromFile(in);
             } catch (IOException e) {
                 throw new IllegalArgumentException("Autoloading database is enabled, but database config is missing.");
